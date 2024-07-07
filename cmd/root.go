@@ -4,7 +4,6 @@ Copyright © 2024 Nestri <>
 package cmd
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"os"
@@ -13,15 +12,23 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 )
 
 //go:embed nestri.ascii
 var art string
+
+type GameConfig struct {
+	Directory  string
+	Executable string
+	GPU        int
+	Vendor     string
+	Resolution struct {
+		Height int
+		Width  int
+	}
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -80,7 +87,7 @@ var neoFetchCmd = &cobra.Command{
 
 // this is the "nestri run" subcommand, takes no arguments for now
 var runCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run [options] [game]",
 	Short: "Run a game using nestri",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -97,6 +104,42 @@ var runCmd = &cobra.Command{
 		//4. SSH into the container and set up everything
 		//5. Run the game
 		//6. Provide the URL to play or throw an error otherwise.
+
+		// The last argument is the game to run
+		game := args[len(args)-1]
+
+		// Load game configuration
+		// var gameConfig GameConfig
+		// if err := viper.UnmarshalKey(fmt.Sprintf("games.%s", game), &gameConfig); err != nil {
+		// 	return fmt.Errorf("error parsing game configuration: %w", err)
+		// }
+
+		// // Override config with command-line flags
+		// cmd.Flags().Visit(func(f *pflag.Flag) {
+		// 	switch f.Name {
+		// 	case "directory":
+		// 		gameConfig.Directory = viper.GetString(f.Name)
+		// 	case "executable":
+		// 		gameConfig.Executable = viper.GetString(f.Name)
+		// 	case "gpu":
+		// 		gameConfig.GPU = viper.GetInt(f.Name)
+		// 	case "vendor":
+		// 		gameConfig.Vendor = viper.GetString(f.Name)
+		// 	case "resolution-height":
+		// 		gameConfig.Resolution.Height = viper.GetInt(f.Name)
+		// 	case "resolution-width":
+		// 		gameConfig.Resolution.Width = viper.GetInt(f.Name)
+		// 	}
+		// })
+
+		fmt.Printf("Running game: %s\n\n", game)
+
+		// cli, err := client.NewClientWithOpts(client.FromEnv)
+		// if err != nil {
+		// 	return fmt.Errorf("error creating Docker client: %w", err)
+		// }
+
+		// ctx := context.Background()
 
 		// var game string
 		// if len(args) > 0 {
@@ -115,48 +158,48 @@ var runCmd = &cobra.Command{
 
 		// fmt.Printf("Running game: %s\n\n", game)
 
-		cli, err := client.NewClientWithOpts()
-		if err != nil {
-			panic(err)
-		}
+		// cli, err := client.NewClientWithOpts()
+		// if err != nil {
+		// 	panic(err)
+		// }
 
-		ctx := context.Background()
-		resp, err := cli.ContainerCreate(ctx, &container.Config{
-			Image: "hello-world",
-		}, nil, nil, nil, "hello-world")
+		// ctx := context.Background()
+		// resp, err := cli.ContainerCreate(ctx, &container.Config{
+		// 	Image: "hello-world",
+		// }, nil, nil, nil, "hello-world")
 
-		if err != nil {
-			panic(err)
-		}
+		// if err != nil {
+		// 	panic(err)
+		// }
 
-		if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
-			panic(err)
-		}
+		// if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
+		// 	panic(err)
+		// }
 
-		// Attach to the container to get logs
-		out, err := cli.ContainerLogs(ctx, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: true})
-		if err != nil {
-			fmt.Printf("Error attaching to container logs: %s\n", err)
-		}
-		defer out.Close()
+		// // Attach to the container to get logs
+		// out, err := cli.ContainerLogs(ctx, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: true})
+		// if err != nil {
+		// 	fmt.Printf("Error attaching to container logs: %s\n", err)
+		// }
+		// defer out.Close()
 
-		// Copy the logs to stdout and stderr
-		stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+		// // Copy the logs to stdout and stderr
+		// stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 
-		// Wait for the container to finish
-		statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
-		select {
-		case err := <-errCh:
-			if err != nil {
-				fmt.Printf("Error waiting for container: %s\n", err)
-			}
-		case <-statusCh:
-			fmt.Println("Container finished")
-		}
-		// Clean up the container
-		if err := cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{}); err != nil {
-			fmt.Printf("Error removing container: %s\n", err)
-		}
+		// // Wait for the container to finish
+		// statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+		// select {
+		// case err := <-errCh:
+		// 	if err != nil {
+		// 		fmt.Printf("Error waiting for container: %s\n", err)
+		// 	}
+		// case <-statusCh:
+		// 	fmt.Println("Container finished")
+		// }
+		// // Clean up the container
+		// if err := cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{}); err != nil {
+		// 	fmt.Printf("Error removing container: %s\n", err)
+		// }
 		// if gpu > 0 {
 		// 	fmt.Print("Using gpu %s\n", gpu)
 		// }
