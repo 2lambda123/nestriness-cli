@@ -90,6 +90,14 @@ var runCmd = &cobra.Command{
 			return nil
 		}
 
+		//The main job here is to:
+		//1. look for an exe in a certain directory,
+		//2. mount the directory inside the container
+		//3. Run the nestri docker container
+		//4. SSH into the container and set up everything
+		//5. Run the game
+		//6. Provide the URL to play or throw an error otherwise.
+
 		// var game string
 		// if len(args) > 0 {
 		// 	game = args[0]
