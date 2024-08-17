@@ -1,0 +1,11 @@
+version: "0.1"
+
+games:
+  CyberPunk2047:
+    directory: /path/to/game
+    executable: CyberPunk2047.exe
+    gpu: 1
+    vendor: GPUidhere #(ex: vendor:N) e.g. nvidia:0 or amd:1
+    resolution:
+      height: 1080
+      width: 1920
